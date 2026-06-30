@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Interactive Summer Focus Calendar</title>
-    <!-- Modern Typography: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -28,7 +27,7 @@
             --accent-red: #F43F5E; /* Neon Red */
         }
 
-        /* Scrollbar Styling */
+        /* Scrollbar Styling - Desktop */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
@@ -41,14 +40,14 @@
         }
 
         body {
-            /* Subtle mesh gradient feel using radial gradients */
             background-color: var(--bg-base);
             background-image: 
                 radial-gradient(circle at 15% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 85% 100%, rgba(14, 165, 233, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
-            font-size: 16px; /* Increased base font size */
+            font-size: 16px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -56,18 +55,19 @@
         }
 
         header {
-            padding: 2rem;
+            padding: 2rem 1rem;
             text-align: center;
             border-bottom: 1px solid var(--surface-border);
             background: rgba(11, 15, 25, 0.7);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
         h1 {
-            font-size: 2.75rem;
+            font-size: clamp(2rem, 5vw, 2.75rem);
             font-weight: 800;
             margin: 0 0 1.25rem 0;
             letter-spacing: -0.02em;
@@ -80,14 +80,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 1.25rem;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
+        /* 3. Touch Interaction: Buttons */
         button {
             background-color: var(--surface-bg);
             color: var(--text-main);
             border: 1px solid var(--surface-border);
-            padding: 0.75rem 1.5rem;
+            padding: 0.75rem 1.25rem;
             border-radius: 10px;
             font-family: 'Inter', sans-serif;
             font-weight: 600;
@@ -95,6 +97,9 @@
             cursor: pointer;
             backdrop-filter: blur(10px);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 44px; /* Touch target */
+            min-width: 44px; /* Touch target */
+            touch-action: manipulation;
         }
 
         button:hover {
@@ -105,24 +110,31 @@
         }
 
         #current-week-label {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 600;
-            min-width: 240px;
+            white-space: nowrap;
         }
 
-        /* 1. Fix Dimensions & Scaling */
+        /* Mobile Tab Switcher */
+        .mobile-day-tabs {
+            display: none; /* Hidden on Desktop */
+        }
+
+        /* Desktop Layout */
         .calendar-wrapper {
             width: 100%;
             overflow-x: auto;
-            padding: 2rem;
             flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .calendar-grid {
             display: flex;
-            min-width: 1400px; /* Prevents squishing */
+            min-width: 1400px;
             gap: 20px;
             align-items: flex-start;
+            padding: 2rem;
         }
 
         .day-column {
@@ -139,6 +151,7 @@
             border-radius: 16px;
             border: 1px solid var(--surface-border);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .day-header.is-today {
@@ -171,7 +184,7 @@
             display: inline-block;
         }
 
-        /* 2. Glassmorphism Card Architecture */
+        /* 3. Touch Interaction: Cards */
         .task-card {
             background: var(--surface-bg);
             backdrop-filter: blur(10px);
@@ -184,13 +197,14 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            touch-action: manipulation; /* Smooth touch response */
         }
 
         .task-card:hover {
             transform: translateY(-3px);
             background: var(--surface-hover);
             border-color: rgba(139, 92, 246, 0.3);
-            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15); /* Vibrant Neon Purple Glow */
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15); 
         }
 
         .task-card.checked {
@@ -207,10 +221,10 @@
             display: grid;
             grid-template-columns: 24px 1fr;
             gap: 16px;
-            align-items: center; /* Perfect vertical alignment */
+            align-items: center; 
         }
 
-        /* Oversized Stylish Checkbox */
+        /* Custom Checkbox */
         .checkbox {
             width: 24px;
             height: 24px;
@@ -223,16 +237,16 @@
         }
 
         .task-card.checked .checkbox {
-            background-color: var(--accent-blue);
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 12px rgba(14, 165, 233, 0.4); /* Glow inside checked state */
+            background-color: var(--accent-purple);
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.4); 
         }
 
         .task-card.checked .checkbox::after {
             content: '';
             width: 6px;
             height: 12px;
-            border: solid var(--bg-base); /* Dark checkmark */
+            border: solid var(--bg-base); 
             border-width: 0 2px 2px 0;
             transform: rotate(45deg);
             margin-bottom: 2px;
@@ -263,7 +277,6 @@
             gap: 6px;
         }
 
-        /* Vibrant Accent Tags */
         .task-tag {
             font-size: 0.75rem;
             font-weight: 700;
@@ -285,12 +298,12 @@
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
-        /* 3. Fix the Weekend Text Wall */
+        /* 2. Fix the Weekend Text Wall (Globally) */
         .catch-up-list {
-            max-height: 250px; /* Limits height, preventing infinite expansion */
+            max-height: 300px;
             overflow-y: auto;
             margin: 0.5rem 0;
-            padding-right: 8px; /* Room for scrollbar */
+            padding-right: 8px; 
             list-style-type: none;
             display: flex;
             flex-direction: column;
@@ -313,6 +326,77 @@
             font-weight: bold;
         }
 
+        /* 1. Mobile-First Strategy Media Queries */
+        @media (max-width: 1024px) {
+            .calendar-wrapper {
+                overflow-x: hidden;
+            }
+
+            .calendar-grid {
+                min-width: 100%;
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            .day-column {
+                display: none; /* Hide all columns initially */
+                width: 100%;
+            }
+
+            .day-column.active-mobile {
+                display: flex; /* Only show active day */
+                animation: fadeIn 0.3s ease-out forwards;
+            }
+
+            .mobile-day-tabs {
+                display: flex;
+                overflow-x: auto;
+                gap: 0.5rem;
+                padding: 1rem;
+                width: 100%;
+                -webkit-overflow-scrolling: touch;
+                border-bottom: 1px solid var(--surface-border);
+            }
+
+            .mobile-day-tabs button {
+                flex: 0 0 auto;
+                padding: 0.5rem 1.25rem;
+                border-radius: 9999px; /* Pill shape */
+                background: var(--surface-bg);
+                border: 1px solid var(--surface-border);
+                color: var(--text-muted);
+                font-weight: 600;
+                transition: all 0.2s ease;
+            }
+
+            .mobile-day-tabs button.active {
+                background: var(--accent-blue);
+                color: #fff;
+                border-color: var(--accent-blue);
+                box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+            }
+
+            /* Hide scrollbars on mobile elements */
+            .mobile-day-tabs::-webkit-scrollbar { display: none; }
+            .mobile-day-tabs { -ms-overflow-style: none; scrollbar-width: none; }
+            
+            .catch-up-list::-webkit-scrollbar { display: none; }
+            .catch-up-list { -ms-overflow-style: none; scrollbar-width: none; }
+
+            .controls {
+                gap: 0.5rem;
+            }
+            .controls button {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
     </style>
 </head>
 <body>
@@ -327,7 +411,10 @@
         </div>
     </header>
 
-    <!-- Wrap grid to enforce horizontal scrolling without squishing -->
+    <div class="mobile-day-tabs" id="mobile-tabs">
+        <!-- Mobile Tabs rendered by JS -->
+    </div>
+
     <div class="calendar-wrapper">
         <div class="calendar-grid" id="calendar">
             <!-- Columns rendered by JS -->
@@ -342,6 +429,9 @@
         if (currentViewDate < START_DATE || currentViewDate > END_DATE) {
             currentViewDate = new Date(START_DATE);
         }
+
+        // Active day state for mobile view
+        let activeMobileDateStr = formatDateKey(new Date());
 
         function getMonday(d) {
             const date = new Date(d);
@@ -367,14 +457,17 @@
             }
             
             localStorage.setItem('focusApp_tasks', JSON.stringify(state));
-            
-            // Re-render to update the weekend catch-up block visually
             renderWeek();
         }
 
         function isTaskChecked(dateKey, taskId) {
             const state = JSON.parse(localStorage.getItem('focusApp_tasks') || '{}');
             return !!state[`${dateKey}_${taskId}`];
+        }
+
+        function selectMobileDay(dateStr) {
+            activeMobileDateStr = dateStr;
+            renderWeek();
         }
 
         function getFDEPhase(date) {
@@ -460,7 +553,10 @@
 
         function renderWeek() {
             const container = document.getElementById('calendar');
+            const mobileTabs = document.getElementById('mobile-tabs');
+            
             container.innerHTML = '';
+            mobileTabs.innerHTML = '';
             
             const monday = getMonday(currentViewDate);
             const sunday = new Date(monday);
@@ -472,14 +568,40 @@
 
             const todayStr = formatDateKey(new Date());
 
+            // Ensure active mobile day exists in the current week, otherwise default to Monday
+            let hasActive = false;
+            for (let i = 0; i < 7; i++) {
+                const checkDate = new Date(monday);
+                checkDate.setDate(monday.getDate() + i);
+                if (formatDateKey(checkDate) === activeMobileDateStr) hasActive = true;
+            }
+            if (!hasActive) {
+                // Default to today if today is in this week, else Monday
+                if (todayStr >= formatDateKey(monday) && todayStr <= formatDateKey(sunday)) {
+                    activeMobileDateStr = todayStr;
+                } else {
+                    activeMobileDateStr = formatDateKey(monday);
+                }
+            }
+
             for (let i = 0; i < 7; i++) {
                 const colDate = new Date(monday);
                 colDate.setDate(monday.getDate() + i);
                 const dateKey = formatDateKey(colDate);
                 const isToday = dateKey === todayStr;
+                const isActiveMobile = dateKey === activeMobileDateStr;
                 
+                // Build Mobile Tabs
+                const tabBtn = document.createElement('button');
+                tabBtn.innerText = isToday ? 'Today' : colDate.toLocaleDateString('en-US', { weekday: 'short' });
+                if (isActiveMobile) tabBtn.classList.add('active');
+                tabBtn.onclick = () => selectMobileDay(dateKey);
+                mobileTabs.appendChild(tabBtn);
+
+                // Build Column
                 const col = document.createElement('div');
                 col.className = 'day-column';
+                if (isActiveMobile) col.classList.add('active-mobile');
                 
                 const isWednesday = colDate.getDay() === 3;
                 const wednesdayFlag = isWednesday ? `<div class="wednesday-flag">Morning Block Only - Afternoon Deadlines</div>` : '';
@@ -501,7 +623,6 @@
                         card.className = `task-card ${isChecked ? 'checked' : ''}`;
                         card.onclick = () => toggleTask(dateKey, index, card);
 
-                        // 3. Fix the Weekend Text Wall
                         let missedHtml = '';
                         if (task.missed && task.missed.length > 0) {
                             missedHtml = `<ul class="catch-up-list">${task.missed.map(m => `<li>${m}</li>`).join('')}</ul>`;
@@ -509,7 +630,6 @@
                             missedHtml = `<div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--accent-green); font-weight: 600;">No missed tasks! 🎉</div>`;
                         }
                         
-                        // Tag class determination
                         const tagClass = (task.tag && task.tag.toLowerCase().includes('priority')) ? 'tag-high-priority' : 'tag-default';
 
                         card.innerHTML = `
@@ -558,6 +678,7 @@
             if (currentViewDate < START_DATE || currentViewDate > END_DATE) {
                 currentViewDate = new Date(START_DATE);
             }
+            activeMobileDateStr = formatDateKey(currentViewDate); // Update mobile view to today
             renderWeek();
         });
 
