@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Summer Focus Calendar</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --accent-primary: #3b82f6;
+            --accent-hover: #2563eb;
+            --cat-tech: rgba(16, 185, 129, 0.2);
+            --cat-tech-border: #10b981;
+            --cat-earn: rgba(245, 158, 11, 0.2);
+            --cat-earn-border: #f59e0b;
+            --cat-job: rgba(99, 102, 241, 0.2);
+            --cat-job-border: #6366f1;
+            --cat-life: rgba(236, 72, 153, 0.2);
+            --cat-life-border: #ec4899;
+            --cat-mgmt: rgba(139, 92, 246, 0.2);
+            --cat-mgmt-border: #8b5cf6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+        }
+
+        header {
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--card-border);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        button {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+
+        #current-week-label {
+            font-size: 1.25rem;
+            font-weight: 600;
+            min-width: 250px;
+        }
+
+        .calendar-container {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 2rem;
+            gap: 1.5rem;
+            flex: 1;
+            align-items: flex-start;
+        }
+
+        .day-column {
+            flex: 1;
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .day-header {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(8px);
+        }
+
+        .day-header.is-today {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .day-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .day-date {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .wednesday-flag {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            display: inline-block;
+        }
+
+        .task-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-left: 4px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card.checked {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .task-card.checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.2);
+            z-index: 0;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 1;
+        }
+
+        .task-tag {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .cat-technical { border-left-color: var(--cat-tech-border); background: linear-gradient(90deg, var(--cat-tech) 0%, var(--card-bg) 100%); }
+        .cat-earnings { border-left-color: var(--cat-earn-border); background: linear-gradient(90deg, var(--cat-earn) 0%, var(--card-bg) 100%); }
+        .cat-job { border-left-color: var(--cat-job-border); background: linear-gradient(90deg, var(--cat-job) 0%, var(--card-bg) 100%); }
+        .cat-lifestyle { border-left-color: var(--cat-life-border); background: linear-gradient(90deg, var(--cat-life) 0%, var(--card-bg) 100%); }
+        .cat-management { border-left-color: var(--cat-mgmt-border); background: linear-gradient(90deg, var(--cat-mgmt) 0%, var(--card-bg) 100%); }
+
+        .catch-up-list {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            list-style-type: disc;
+            padding-left: 1.2rem;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Summer Focus 2026</h1>
+        <div class="controls">
+            <button id="prev-week">← Prev Week</button>
+            <div id="current-week-label">July 1 - July 7</div>
+            <button id="next-week">Next Week →</button>
+            <button id="today-btn">Today</button>
+        </div>
+    </header>
+
+    <div class="calendar-container" id="calendar">
+        <!-- Columns rendered by JS -->
+    </div>
+
+    <script>
+        const START_DATE = new Date('2026-07-01T00:00:00');
+        const END_DATE = new Date('2026-09-01T00:00:00');
+        
+        let currentViewDate = new Date();
+        if (currentViewDate < START_DATE || currentViewDate > END_DATE) {
+            currentViewDate = new Date(START_DATE);
+        }
+
+        function getMonday(d) {
+            const date = new Date(d);
+            const day = date.getDay();
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(date.setDate(diff));
+        }
+
+        function formatDateKey(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        function toggleTask(dateKey, taskId, cardElement) {
+            const state = JSON.parse(localStorage.getItem('focusApp_tasks') || '{}');
+            const isChecked = state[`${dateKey}_${taskId}`];
+            
+            if (isChecked) {
+                delete state[`${dateKey}_${taskId}`];
+                cardElement.classList.remove('checked');
+            } else {
+                state[`${dateKey}_${taskId}`] = true;
+                cardElement.classList.add('checked');
+            }
+            
+            localStorage.setItem('focusApp_tasks', JSON.stringify(state));
+            
+            // Re-render to update the weekend catch-up block visually
+            renderWeek();
+        }
+
+        function isTaskChecked(dateKey, taskId) {
+            const state = JSON.parse(localStorage.getItem('focusApp_tasks') || '{}');
+            return !!state[`${dateKey}_${taskId}`];
+        }
+
+        function getFDEPhase(date) {
+            const time = date.getTime();
+            const d = (str) => new Date(str + 'T00:00:00').getTime();
+            const end = (str) => new Date(str + 'T23:59:59').getTime();
+            
+            if (time >= d('2026-07-01') && time <= end('2026-07-07')) return "Phase 1: System Design";
+            if (time >= d('2026-07-08') && time <= end('2026-07-12')) return "Phase 2: Linux";
+            if (time >= d('2026-07-13') && time <= end('2026-07-18')) return "Phase 3: DSA";
+            if (time >= d('2026-07-19') && time <= end('2026-07-25')) return "Phase 4: DevOps";
+            if (time >= d('2026-07-26') && time <= end('2026-08-01')) return "Phase 5: Backend";
+            if (time >= d('2026-08-02') && time <= end('2026-08-07')) return "Phase 6: Frontend";
+            if (time >= d('2026-08-08') && time <= end('2026-08-12')) return "Phase 7: Prompt Engineering";
+            if (time >= d('2026-08-13') && time <= end('2026-08-19')) return "Phase 8: FDE Main";
+            return null;
+        }
+
+        function getTasksForDate(date) {
+            const dateStr = formatDateKey(date);
+            const day = date.getDay();
+            const isWeekend = day === 0 || day === 6;
+            
+            let tasks = [];
+
+            if (isWeekend) {
+                const monday = getMonday(date);
+                let missedTasks = [];
+                for(let i=0; i<5; i++) {
+                    const d = new Date(monday);
+                    d.setDate(monday.getDate() + i);
+                    if(d >= START_DATE && d <= END_DATE) {
+                        const dKey = formatDateKey(d);
+                        const weekdayTasks = getBaseTasks(d, formatDateKey(d));
+                        weekdayTasks.forEach((t, idx) => {
+                            if(!isTaskChecked(dKey, idx)) {
+                                missedTasks.push(`${t.name} (${d.toLocaleDateString('en-US', {weekday:'short'})})`);
+                            }
+                        });
+                    }
+                }
+
+                tasks.push({ 
+                    name: "Catch-up & Optimization", 
+                    duration: "Flexible", 
+                    category: "management", 
+                    tag: "Weekend",
+                    missed: missedTasks
+                });
+                
+                tasks.push({ name: "Content Creation (Light)", duration: "1 hour", category: "earnings", tag: "" });
+                tasks.push({ name: "Health Baseline", duration: "45 minutes", category: "lifestyle", tag: "" });
+                
+                return tasks;
+            }
+
+            return getBaseTasks(date, dateStr);
+        }
+
+        function getBaseTasks(date, dateStr) {
+            const isOverrideDate = ['2026-07-03', '2026-07-06', '2026-07-07', '2026-07-08'].includes(dateStr);
+            const tasks = [];
+
+            tasks.push({ name: "Content Creation", duration: "2 hours", category: "earnings", tag: "Priority 1" });
+            tasks.push({ name: "Trend Learning", duration: "1 hour", category: "technical", tag: "" });
+            tasks.push({ name: "ASIF Ventures Prep & Ops", duration: "1 hour", category: "management", tag: "" });
+            tasks.push({ name: "Remote Job Applications", duration: isOverrideDate ? "30 mins" : "1 hour", category: "job", tag: "High Priority" });
+            tasks.push({ name: "Onsite Job Applications", duration: isOverrideDate ? "30 mins" : "1 hour", category: "job", tag: "" });
+            tasks.push({ name: "Health Baseline", duration: "45 minutes", category: "lifestyle", tag: "" });
+
+            const fdePhase = getFDEPhase(date);
+            if (fdePhase) {
+                tasks.push({ 
+                    name: `Deep Work: ${fdePhase} (13 topics)`, 
+                    duration: isOverrideDate ? "2 Hours" : "4 Hours", 
+                    category: "technical", 
+                    tag: "FDE Roadmap" 
+                });
+            }
+
+            return tasks;
+        }
+
+        function renderWeek() {
+            const container = document.getElementById('calendar');
+            container.innerHTML = '';
+            
+            const monday = getMonday(currentViewDate);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            
+            const options = { month: 'short', day: 'numeric' };
+            document.getElementById('current-week-label').innerText = 
+                `${monday.toLocaleDateString('en-US', options)} - ${sunday.toLocaleDateString('en-US', options)}`;
+
+            const todayStr = formatDateKey(new Date());
+
+            for (let i = 0; i < 7; i++) {
+                const colDate = new Date(monday);
+                colDate.setDate(monday.getDate() + i);
+                const dateKey = formatDateKey(colDate);
+                const isToday = dateKey === todayStr;
+                
+                const col = document.createElement('div');
+                col.className = 'day-column';
+                
+                const isWednesday = colDate.getDay() === 3;
+                const wednesdayFlag = isWednesday ? `<div class="wednesday-flag">Morning Block Only - Afternoon Deadlines</div>` : '';
+                
+                let headerHTML = `
+                    <div class="day-header ${isToday ? 'is-today' : ''}">
+                        <div class="day-name">${colDate.toLocaleDateString('en-US', { weekday: 'long' })}</div>
+                        <div class="day-date">${colDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                        ${wednesdayFlag}
+                    </div>
+                `;
+                col.innerHTML = headerHTML;
+
+                if (colDate >= START_DATE && colDate <= END_DATE) {
+                    const tasks = getTasksForDate(colDate);
+                    tasks.forEach((task, index) => {
+                        const isChecked = isTaskChecked(dateKey, index);
+                        const card = document.createElement('div');
+                        card.className = `task-card cat-${task.category} ${isChecked ? 'checked' : ''}`;
+                        card.onclick = () => toggleTask(dateKey, index, card);
+
+                        let missedHtml = '';
+                        if (task.missed && task.missed.length > 0) {
+                            missedHtml = `<ul class="catch-up-list">${task.missed.map(m => `<li>${m}</li>`).join('')}</ul>`;
+                        } else if (task.missed && task.missed.length === 0) {
+                            missedHtml = `<div style="margin-top: 0.5rem; font-size: 0.8rem; color: #10b981;">No missed tasks! 🎉</div>`;
+                        }
+
+                        card.innerHTML = `
+                            <div class="task-title">${task.name}</div>
+                            ${missedHtml}
+                            <div class="task-meta">
+                                <span>⏱ ${task.duration}</span>
+                                ${task.tag ? `<span class="task-tag">${task.tag}</span>` : ''}
+                            </div>
+                        `;
+                        col.appendChild(card);
+                    });
+                } else {
+                    const outOfBounds = document.createElement('div');
+                    outOfBounds.style.textAlign = 'center';
+                    outOfBounds.style.color = 'var(--text-muted)';
+                    outOfBounds.style.fontSize = '0.9rem';
+                    outOfBounds.style.marginTop = '2rem';
+                    outOfBounds.innerText = "Outside Summer Focus Period";
+                    col.appendChild(outOfBounds);
+                }
+
+                container.appendChild(col);
+            }
+        }
+
+        document.getElementById('prev-week').addEventListener('click', () => {
+            currentViewDate.setDate(currentViewDate.getDate() - 7);
+            renderWeek();
+        });
+
+        document.getElementById('next-week').addEventListener('click', () => {
+            currentViewDate.setDate(currentViewDate.getDate() + 7);
+            renderWeek();
+        });
+
+        document.getElementById('today-btn').addEventListener('click', () => {
+            currentViewDate = new Date();
+            if (currentViewDate < START_DATE || currentViewDate > END_DATE) {
+                currentViewDate = new Date(START_DATE);
+            }
+            renderWeek();
+        });
+
+        renderWeek();
+    </script>
+</body>
+</html>
